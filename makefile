@@ -3,7 +3,7 @@ CXX = g++
 
 
 TARGET = jsh
-OBJ = main.o
+OBJ = main.o parser.o terminal.o command.o
 
 $(TARGET): $(OBJ)
 	$(CXX) -g -o $@  $^  
