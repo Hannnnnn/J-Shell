@@ -1,6 +1,7 @@
 #include "terminal.h"
 #include <errno.h>
- int val;
+
+int val;
 void Terminal::shell() {
     
     while(true) {
