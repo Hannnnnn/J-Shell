@@ -12,7 +12,7 @@ class Terminal {
 
 public:
     void shell();    
-    void excute(Command *command);
+    int excute(Command *command);
 
 private:
     const static int SIZE = 1024;
