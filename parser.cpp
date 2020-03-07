@@ -1,24 +1,56 @@
 #include "parser.h"
 
-Command* Parser::parse(std::string& s) {
-    auto result = this->get_tokens(s);
-    if (result.second == false) {
-        return nullptr;
+Command* Parser::parse_list(std::vector<std::string>& tokens) {
+    
+    ListCommand* list_command = new ListCommand();
+
+    auto list = std::find(tokens.begin(), tokens.end(), ";");
+
+    while (list != tokens.end()) {
+        std::vector<std::string> sub_tokens(tokens.begin(), list);
+        list_command->commands.push_back(parse_command(sub_tokens));
+        tokens.erase(tokens.begin(), list + 1);
+        list = std::find(tokens.begin(), tokens.end(), ";");
     }
-    std::vector<std::string>& tokens = result.first; 
+    
+    if (tokens.size() > 0) {
+        list_command->commands.push_back(parse_command(tokens));
+    }
+
+    return list_command;
+}
+
+Command* Parser::parse_command(std::vector<std::string>& tokens) {
+
     auto in_redir = std::find(tokens.begin(), tokens.end(), "<");
     auto out_redir = std::find(tokens.begin(), tokens.end(), ">");
-    
+    auto list = std::find(tokens.begin(), tokens.end(), ";");
+   
     Command* command = nullptr;
-    if (in_redir == tokens.end() && out_redir == tokens.end()) {
-      
-        command = new SimpleCommand(tokens[0], tokens);
-      
+
+    if (list != tokens.end()) {
+        command = parse_list(tokens);
+    }   
+    else if (in_redir != tokens.end() || out_redir != tokens.end()) {
+        command = parse_redir(tokens);
+       
     }
     else {
-       command = parse_redir(tokens);
+        command = new SimpleCommand(tokens[0], tokens);
     }
     return command;
+}   
+
+
+Command* Parser::parse(std::string& s) {
+    auto result = this->get_tokens(s);
+     
+    std::vector<std::string>& tokens = result.first; 
+    if (result.second == false || tokens.size() < 1) {
+        return nullptr;
+    }
+  
+    return parse_command(tokens);
 }
 
 Command* Parser::parse_redir(std::vector<std::string>& tokens) {
@@ -46,7 +78,6 @@ Command* Parser::parse_redir(std::vector<std::string>& tokens) {
 
     for (auto iter = tokens.begin(); iter != tokens.end(); ) {
         if (*iter == ">") {
-            
             iter = tokens.erase(iter);
             if (iter  != tokens.end()) {
                 redir->out.push_back(*(iter));
@@ -110,11 +141,13 @@ std::pair<std::vector<std::string>, bool> Parser::get_tokens(std::string& s) {
                 std::cout << "Jsh: syntax error" << std::endl;
                 return std::make_pair(tokens, false);
             }
+        } else if (s[p] == ';') {
+            tokens.push_back(s.substr(p++, 1));
         }
         else {
             size_t q = p;
            
-            while (q < s.size() && s[q] != ' ') {
+            while (q < s.size() && s[q] != ' ' && s[q] != ';') {
                 q++;
             }
             tokens.push_back(s.substr(p, q - p));

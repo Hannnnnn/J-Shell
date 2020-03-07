@@ -13,7 +13,8 @@ class Terminal {
 public:
     void shell();    
     int excute(Command *command);
-
+    int execute_simple(SimpleCommand *command);
+    int execute_list(ListCommand *command);
 private:
     const static int SIZE = 1024;
     char* user_name;

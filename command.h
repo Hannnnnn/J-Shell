@@ -40,4 +40,17 @@ struct RedirCommand: public SimpleCommand {
     
 };
 
+struct ListCommand : public Command {
+    std::vector<Command*> commands;
+    ListCommand() {
+
+    }
+
+    ~ListCommand() {
+        for (auto& comm:commands) {
+            delete comm;
+        }
+    }
+};
+
 #endif

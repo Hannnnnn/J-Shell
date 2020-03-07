@@ -30,13 +30,13 @@ make
 
 #### Get Started
 ```
-jsh
+./jsh
 ```
 ### TODO List
 
 [x] I/O Redirection
+[x] Multiple commands
 [ ] Pipe
-[ ] Multiple commands
 
 
 
