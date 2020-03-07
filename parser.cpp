@@ -12,7 +12,7 @@ Command* Parser::parse(std::string& s) {
     Command* command = nullptr;
     if (in_redir == tokens.end() && out_redir == tokens.end()) {
       
-        command = new Command(tokens[0], tokens);
+        command = new SimpleCommand(tokens[0], tokens);
       
     }
     else {
@@ -61,7 +61,9 @@ Command* Parser::parse_redir(std::vector<std::string>& tokens) {
         }
         iter++;
     }
-
+    if (tokens.size() < 1) {
+        return nullptr;
+    }
     redir->name = tokens[0];
     redir->args = tokens;
 

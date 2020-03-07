@@ -15,23 +15,24 @@ void Terminal::shell() {
         Command *command = parser.parse(str);
    
         if (command != nullptr) {
-            if (command->name == EXIT_COMMAND) {
-                printf("Bye\n"); 
-                exit(0);
-            } else if (command->name == CD_COMMAND) {
 
-                if (command->args.size() == 1) {
-                    char home_path[SIZE] = "/home/";
-                    strcat(home_path, getenv("USER"));
-                    chdir(home_path);    
+            SimpleCommand *simple = dynamic_cast<SimpleCommand*>(command);
+            if (simple != nullptr) {
+                if (simple->name == EXIT_COMMAND) {
+                    printf("Bye\n"); 
+                    exit(0);
+                } else if (simple->name == CD_COMMAND) {
+                    if (simple->args.size() == 1) {
+                        char home_path[SIZE] = "/home/";
+                        strcat(home_path, getenv("USER"));
+                        chdir(home_path);    
+                    }
+                    else if (simple->args.size() > 1) {
+                        chdir(simple->args[1].c_str());
+                    }
+                } else {
+                    this->excute(command);
                 }
-                else if (command->args.size() > 1) {
-                    chdir(command->args[1].c_str());
-                }
-
-            } else {
-               this->excute(command);
-                
             }
 
         }
@@ -45,45 +46,51 @@ void Terminal::shell() {
 int Terminal::excute(Command *command) {
     
     char **args;
-    args = new char* [command->args.size() + 1];
 
-    for (int i = 0 ; i < command->args.size() ; i++ ) {
-        args[i] = new char[command->args[i].size() + 10];
-       
-        strcpy(args[i], command->args[i].c_str());
+    SimpleCommand *simple = dynamic_cast<SimpleCommand*>(command);
     
-    }
+    if (simple != nullptr) {
+        args = new char* [simple->args.size() + 1];
 
-    args[command->args.size()] = 0;
-    
-    pid_t pid = fork();
-    if (pid == 0) {
-        RedirCommand *redir = dynamic_cast<RedirCommand*>(command);
-        if (redir != nullptr) {
-            for (auto& in_file:redir->in) {
-                freopen(in_file.c_str(),"r", stdin);
-            }
-
-            for (auto& out_file:redir->out) {
-                freopen(out_file.c_str(), "w", stdout);
-            }
+        for (int i = 0 ; i < simple->args.size() ; i++ ) {
+            args[i] = new char[simple->args[i].size() + 10];
+        
+            strcpy(args[i], simple->args[i].c_str());
+        
         }
 
-       if (execvp(command->name.c_str(), args) == -1)
-            std::cout << "Jsh: No such command\n";
-        exit(0);
-    }
-    else {
-        int status;
-        wait(&status);
+        args[simple->args.size()] = 0;
         
-        for (int i = 0 ; i <= command->args.size() ; i++ ) {
-            delete[] args[i]; 
+        pid_t pid = fork();
+        if (pid == 0) {
+            RedirCommand *redir = dynamic_cast<RedirCommand*>(simple);
+            if (redir != nullptr) {
+                for (auto& in_file:redir->in) {
+                    freopen(in_file.c_str(),"r", stdin);
+                }
+
+                for (auto& out_file:redir->out) {
+                    freopen(out_file.c_str(), "w", stdout);
+                }
+            }
+        if (execvp(simple->name.c_str(), args) == -1)
+                std::cout << "Jsh: No such command\n";
+            exit(0);
         }
-        
-        delete[] args;
-        
-        return WEXITSTATUS(status);
+        else {
+            int status;
+            wait(&status);
+            
+            for (int i = 0 ; i <= simple->args.size() ; i++ ) {
+                delete[] args[i]; 
+            }
+            
+            delete[] args;
+            
+            return WEXITSTATUS(status);
+        }
     }
+  
+    
    
 }
