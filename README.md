@@ -34,9 +34,9 @@ make
 ```
 ### TODO List
 
--[x] I/O Redirection  
--[x] Multiple commands  
--[ ] Pipe  
+- [x] I/O Redirection  
+- [x] Multiple commands  
+- [ ] Pipe  
 
 
 
